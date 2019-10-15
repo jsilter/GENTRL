@@ -118,7 +118,7 @@ class GENTRL(nn.Module):
         self.lp.load_state_dict(torch.load(folder_to_load + 'lp.model'))
 
     def train_as_vaelp(self, train_loader, num_epochs=10,
-                       verbose_step=50, lr=1e-3):
+                       verbose_step=50, lr=1e-3, buf_size=5000):
         optimizer = optim.Adam(self.parameters(), lr=lr)
 
         global_stats = TrainStats()
@@ -148,7 +148,7 @@ class GENTRL(nn.Module):
                     y_batch = y_batch.view(-1, 1).contiguous()
 
                 if to_reinit:
-                    if (buf is None) or (buf.shape[0] < 5000):
+                    if (buf is None) or (buf.shape[0] < buf_size):
                         enc_out = self.enc.encode(x_batch)
                         means, log_stds = torch.split(enc_out,
                                                       len(self.latent_descr),
@@ -164,7 +164,7 @@ class GENTRL(nn.Module):
                         descr = len(self.latent_descr) * [0]
                         descr += len(self.feature_descr) * [1]
                         self.lp.reinit_from_data(buf, descr)
-                        self.lp.cuda()
+                        #self.lp.cuda()
                         buf = None
                         to_reinit = False
 
